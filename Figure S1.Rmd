@@ -1,0 +1,63 @@
+---
+title: "Figure S1"
+output: html_document
+---
+This notebook contains the code to generate figure panels for Figure S1 in Ahler et al., A Combined Approach Reveals a Regulatory Mechanism Coupling Src’s Kinase Activity, Localization,and Phosphotransferase-Independent Functions, Molecular Cell (2019), https://doi.org/10.1016/j.molcel.2019.02.003. The default ggplot axes labels and text have been hidden and were manually added in later in with graphics software to conform to publishing font size.
+
+Load all required packages
+```{r}
+require(tidyverse)
+require(cowplot)
+require(hexbin)
+require(reshape2)
+require(gridExtra)
+require(RColorBrewer)
+
+```
+
+
+S1B: Bar plot showing the breakdown of the Src mutant library.
+```{r}
+df_S2B <- read_tsv("Data/Figure S1 Data/2I Data.csv", col_names = TRUE)
+
+p_S2B <- ggplot(df_S2B, aes(x=Group.1, y=sequence_frequency)) + geom_bar(stat="identity", fill = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")  + scale_y_continuous(breaks = c(0,.25,.5,.75,1), limits = c(0,1))
+p_S2B
+
+ggsave("S2B.pdf", p_S2B, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 2/Figure 2 Code/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+
+
+````
+
+S2C: Bar plot showing average activity score of mutations based on amino acid type. B&W
+
+```{r}
+df_S2C <- read_tsv("~/Dropbox/Combined Src Manuscript/Figures/Figure 2/Figure 2 Data/Figure 2 Dataframes/S2C Data.tsv", col_names = TRUE)
+
+p_S2C <- ggplot(df_S2C, aes(x=mutant, y=Activity)) + geom_bar(stat="identity", fill = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") 
+p_S2C
+
+ggsave("S2C.pdf", p_S2C, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 2/Figure 2 Code/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+````
+
+S2D: Scatter plot showing evolutionary conservation plotted against activity score. B&W
+```{r}
+df_S2D <- read_tsv("~/Dropbox/Combined Src Manuscript/Figures/Figure 2/Figure 2 Data/Figure 2 Dataframes/S2D Data.tsv", col_names = TRUE)
+
+p_S2D <- ggplot(df_S2D, aes(x=normalized_conservation, y=avg_activity)) + geom_point(color = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") 
+p_S2D
+ 
+cor.test(df_S2D$normalized_conservation ,df_S2D$avg_activity, method = "pearson") #-0.4851044 
+cor.test(df_S2D$normalized_conservation ,df_S2D$avg_activity, method = "spearman") #-0.5555609 
+
+
+
+
+ggsave("S2D.pdf", p_S2D, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 2/Figure 2 Code/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+```
+
