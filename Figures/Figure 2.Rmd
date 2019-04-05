@@ -1,0 +1,104 @@
+---
+title: "Figure 2"
+output: html_document
+---
+This notebook contains the code to generate figure panels for Figure 2 in Ahler et al., A Combined Approach Reveals a Regulatory Mechanism Coupling Src’s Kinase Activity, Localization,and Phosphotransferase-Independent Functions, Molecular Cell (2019), https://doi.org/10.1016/j.molcel.2019.02.003. The default ggplot axes labels and text have been hidden and were manually added in later in with graphics software to conform to publishing font. To see axes labels, comment out the 'theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")' lines.
+
+Load all required packages
+```{r}
+require(tidyverse)
+require(cowplot)
+require(hexbin)
+require(reshape2)
+require(gridExtra)
+require(RColorBrewer)
+
+```
+
+
+2B: Dot plot showing growth rates of control Src variants in yeast strain.  
+```{r}
+df_2B <- read_csv("Data/Figure 2 Data/2B Data.csv", col_names = TRUE)
+p_2B <- ggplot(df_2B, aes(x=Strain, y=GrowthRate)) + geom_jitter(size=1.5, height=0,width=.4) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16)  +xlim(c("Empty","WT","K298M","T341I"))  + scale_y_continuous(breaks = c(0,0.00064,0.00128,0.00192,0.00256,0.0032), limits = c(0,0.0032)) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")
+p_2B
+
+ggsave("2B.pdf", p_2B, path = "Output/Figure 2 Output/", height = 1.5, width =1.8, units = "in", dpi=500)
+```
+
+
+2D: Scatter plot showing activity score correlation between two independent transformations of Src library.
+```{r}
+#Load independent transformation replicate data
+rep1 <- read_tsv("Data/Figure 2 Data/2D_rep1.tsv")
+
+rep2 <- read_tsv("Data/Figure 2 Data/2D_rep2.tsv")
+
+#Convert 'score' to 'activity'
+rep1 <- mutate(rep1, Activity = -(score))
+rep2 <- mutate(rep2, Activity = -(score))
+colnames(rep1)[1] <- "variant"
+colnames(rep2)[1] <- "variant"
+
+
+#Merge to look at activity correlations
+Merge <- inner_join(rep1, rep2, by = "variant")
+
+#Select only activity scores
+Merge <- select(Merge, variant, Activity.x, Activity.y)
+
+cor(Merge$Activity.x, Merge$Activity.y, method = "pearson") # R = 0.9076656 Pearsons. 
+cor(Merge$Activity.x, Merge$Activity.y, method = "spearman") # R = 0.9220022 Spearman. 
+ggplot(Merge, aes(x=Activity.x, y=Activity.y)) + geom_point(alpha=1/2, colour = "black", size = 2) + 
+  theme(panel.background = element_rect(fill = "white"), panel.border = element_blank(), text = element_text(size=28), axis.text = element_text(colour="black", size=22), axis.line = element_line(color='black', size = 2)) + labs(x = "Activity Score Replicate 1", y = "Activity Score Replicate 2")
+
+#Plot as a geom_hex
+hex <- ggplot(Merge, aes(Activity.x, y=Activity.y)) + geom_hex(color="black", bins = 50) + theme(panel.background = element_rect(fill = "white"), panel.border = element_blank(), text = element_text(size=10), axis.text = element_text(colour="black", size=8), axis.line = element_line(color='black', size = 3), legend.position = c(.85,.15), legend.direction = "horizontal", legend.text=element_text(size=8)) + labs(x = "Replicate 1", y = "Replicate 2") + scale_fill_gradient(name = "Count",low = "grey80", high="black")
+hex
+ggsave("2D.pdf", hex, path = "Output/Figure 2 Output/", height = 2, width =2, units = "in", dpi=500)
+
+```
+
+2E: Dotplot for Activity Score classification
+```{r}
+df_2E <- read_csv("Data/Figure 2 Data/2E Data.csv")
+sum(table(df_2E$Classification)) #n = 3372
+table(df_2E$Classification)# gof = 403 12.0%, lof = 1681 49.8%, neutral = 1288 38.2%
+col = c("#268450","#1074B2","#DF8634") #set color pallete
+
+p_2E <- ggplot(df_2E, aes(x=Classification, y=df_2E$`Activity Score`, colour = factor(Classification))) + geom_jitter(width=0.4,alpha= 1/5,size=.75) + theme(panel.background = element_rect(fill = "white"), panel.border = element_blank(),axis.line = element_line(color='black', size = 1), legend.position = "none", axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank()) + scale_colour_manual(values = col) + scale_x_discrete( limits=c("loss of function", "neutral", "gain of function"))
+p_2E
+
+ggsave("2E.pdf", p_2E, path = "Output/Figure 2 Output/", height = 1.5, width =1.4, units = "in", dpi=300)
+
+```
+
+2G: Dot plot showing growth rates of Src panel variants. 
+``` {r}
+df_2G <- read_csv("Data/Figure 2 Data/2G Data.csv", col_names = TRUE)
+p_2G <- ggplot(df_2G, aes(x=Strain, y=Growth)) + geom_jitter(size=1.5, height=0,width=.12) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16)  +xlim(c("N471Y","P491G","G398T","V274A","E381T","WT","K298M","T341I")) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_y_continuous(breaks = c(0,0.00064,0.00128,0.00192,0.00256,0.0032), limits = c(0,0.0032))
+p_2G
+
+activity_2G <- c(-1.3,-0.9,0,1.9,3.4,0,-1.6,2.5) #activity scores of the select variants, manually pulled from 2E Data.csv in the order as above
+aggregate(df_2G$Growth, list(df_2G$Strain), mean) #grabs mean growth rate for each strain
+strain_2G <- c(0.002821667, 0.002633333, 0.001968333, 0.001365000,0.000090000,0.0017633333,0.0030366667,0.0001466667) #manually entered from previous line of code
+corr_df_2G <- cbind(activity_2G, strain_2G)
+corr_df_2G <- as.data.frame(corr_df_2G)
+cor.test(corr_df_2G$activity_2G,corr_df_2G$strain_2G, method = "pearson") #-0.9742406  
+
+ggsave("2G.pdf", p_2G, path = "Output/Figure 2 Output/", height = 1.5, width =3.6, units = "in", dpi=500)
+```
+
+2I: Dot plot comparing yeast activity scores vs. mammalian cell westerns.
+```{r}
+df_2I <- read_csv("Data/Figure 2 Data/2I Data.csv", col_names = TRUE)
+p_2I <- ggplot(df_2I, aes(x=ActivityScore, y=pTyr)) + geom_jitter(size=1.5, height=0,width=.12) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") 
+p_2I
+
+cor.test(df_2I$ActivityScore,df_2I$pTyr, method = "pearson") #0.9688707 
+
+
+ggsave("2I.pdf", p_2I, path = "Output/Figure 2 Output/", height = 1.5, width =2.6, units = "in", dpi=500)
+```

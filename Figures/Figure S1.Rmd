@@ -1,0 +1,51 @@
+---
+title: "Figure S1"
+output: html_document
+---
+This notebook contains the code to generate figure panels for Figure S1 in Ahler et al., A Combined Approach Reveals a Regulatory Mechanism Coupling Src’s Kinase Activity, Localization,and Phosphotransferase-Independent Functions, Molecular Cell (2019), https://doi.org/10.1016/j.molcel.2019.02.003. The default ggplot axes labels and text have been hidden and were manually added in later in with graphics software to conform to publishing font size. To see axes labels, comment out the 'theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")' lines.
+
+Load all required packages
+```{r}
+require(tidyverse)
+require(cowplot)
+```
+
+
+S1B: Bar plot showing the breakdown of the Src mutant library.
+```{r}
+df_S1B <- read_tsv("Data/Figure S1 Data/S1B Data.tsv", col_names = TRUE)
+
+p_S1B <- ggplot(df_S1B, aes(x=Group.1, y=sequence_frequency)) + geom_bar(stat="identity", fill = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")  + scale_y_continuous(breaks = c(0,.25,.5,.75,1), limits = c(0,1))
+p_S1B
+
+ggsave("S1B.pdf", p_S1B, path = "Output/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+```
+
+S1C: Bar plot showing average activity score of mutations based on amino acid type.
+```{r}
+df_S1C <- read_tsv("Data/Figure S1 Data/S1C Data.tsv", col_names = TRUE)
+
+p_S1C <- ggplot(df_S1C, aes(x=mutant, y=Activity)) + geom_bar(stat="identity", fill = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") 
+p_S1C
+
+ggsave("S1C.pdf", p_S2C, path = "Output/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+```
+
+S1D: Scatter plot showing evolutionary conservation plotted against activity score.
+```{r}
+df_S1D <- read_tsv("Data/Figure S1 Data/S1D Data.tsv", col_names = TRUE)
+
+p_S1D <- ggplot(df_S1D, aes(x=normalized_conservation, y=avg_activity)) + geom_point(color = "black") + 
+   theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") 
+p_S1D
+ 
+cor.test(df_S1D$normalized_conservation ,df_S1D$avg_activity, method = "pearson") #-0.4851044 
+
+ggsave("S1D.pdf", p_S1D, path = "Output/Figure 2 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+
+```
+

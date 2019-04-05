@@ -1,0 +1,190 @@
+---
+title: "Figure 3"
+output: html_document
+---
+This notebook contains the code to generate figure panels for Figure 3 in Ahler et al., A Combined Approach Reveals a Regulatory Mechanism Coupling Src’s Kinase Activity, Localization,and Phosphotransferase-Independent Functions, Molecular Cell (2019), https://doi.org/10.1016/j.molcel.2019.02.003. The default ggplot axes labels and text have been hidden and were manually added in later in with graphics software to conform to publishing font. To see axes labels, comment out the 'theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none")' lines.
+
+Load all required packages
+```{r}
+require(tidyverse)
+require(cowplot)
+require(reshape2)
+require(gridExtra)
+
+```
+
+3A: Half this figure is generated in Pymol, the other half is generated in R using dendextend. I dont know how to save the newly created dendogram automatically, so I'm just going to leave this blank and have the code in a seperate document. COLOR
+```{r}
+
+
+```
+
+
+
+3B: Dot plot of activity scores of mutants at SH3/Linker-CD, SH2-CD, and aF patch.
+```{r}
+df_3B <- read_tsv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/3B Data.tsv", col_names = TRUE)
+df_3B$residue <- as.character(df_3B$residue)
+
+SH3_residues <- c(289, 290, 291, 293, 330) #these were determined using the Centroid script + hierarchacal clustering
+SH2_residues <- c(325,368,375)#these were determined using the Centroid script + hierarchacal clusttering
+aF_patch_residues <- c(378,381,443,444,506,508,511,512)#these were determined using the Centroid script + hierarchacal clustering
+
+SH3_df <- filter(df_3B, residue %in% SH3_residues)
+SH2_df <- filter(df_3B, residue %in% SH2_residues)
+aF_df <- filter(df_3B, residue %in% aF_patch_residues)
+
+colz = c("#268450","#1074B2","#DF8634")
+#Make the plot for SH3 interface residues, standard size (3 column)
+pSH3 <- ggplot(SH3_df, aes(x=SH3_df$residue, y=Activity, fill = classification)) + geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1.5) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_fill_manual(values = colz) 
+
+ggsave("3B_SH3_revised.pdf", pSH3, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=300)
+
+#Make the plot for SH2 interface residues, standard size (3 column)
+pSH2 <- ggplot(SH2_df, aes(x=SH2_df$residue, y=Activity, fill = classification)) + geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1.5) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_fill_manual(values = colz) 
+
+ggsave("3B_SH2_revised.pdf", pSH2, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=300)
+
+#Make the plot for SH2 interface residues, standard size (3 column)
+paF <- ggplot(aF_df, aes(x=aF_df$residue, y=Activity, fill = classification)) + geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 1.5) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_fill_manual(values = colz) 
+
+ggsave("3B_aF_revised.pdf", paF, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=300)
+
+
+#Let's also try a 1/3 column width
+ggsave("3B_SH3_wider.pdf", pSH3, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.1, units = "in", dpi=300)
+ggsave("3B_SH2_wider.pdf", pSH2, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.1, units = "in", dpi=300)
+ggsave("3B_aF_wider.pdf", paF, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.1, units = "in", dpi=300)
+
+
+
+
+
+
+```
+
+3C: Dot plot of in vitro activity of different interface mutants. B&W
+```{r}
+df_3C <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/3C Data.csv", col_names = TRUE)
+p_3C <- ggplot(df_3C, aes(x=Src, y=Activity)) + geom_jitter(size=1, height=0,width=.12) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16)  +xlim(c("WT","T293D","E381T","I444K")) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_y_continuous(breaks = c(0,3,6,9,12,16), limits = c(0,16))
+p_3C
+
+
+
+ggsave("3C_revised.pdf", p_3C, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=500)
+```
+
+
+3D: Schematic of the SH3 pulldown assay
+
+3E (Revised): Dot plot of SH3 accessibility. B&W
+```{r}
+df_3E <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/3E Data Revised.csv", col_names = TRUE)
+p_3E <- ggplot(df_3E, aes(x=Mutant, y=Eluted)) + geom_jitter(size=1, height=0,width=.08) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 8)  +xlim(c("WT","T293D","D368K","E381T")) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_y_continuous(breaks = c(0,20,40,60,80), limits = c(0,80))
+p_3E
+
+#Significance test Src WT vs. T293D vs. D368K vs. E381T SH3 pulldown. One way ANOVA w/ post hoc Tukey
+stats_3E <- aov(Eluted ~ Mutant, data=df_3E)
+summary(stats_3E)
+TukeyHSD(stats_3E)
+
+# $Mutant
+#                  diff       lwr       upr    p adj
+# E381T-D368K -17.33333 -23.88116 -10.78550 1.62e-05
+# T293D-D368K  17.70000  11.63789  23.76211 5.50e-06
+# WT-D368K    -43.73667 -49.27059 -38.20274 0.00e+00
+# T293D-E381T  35.03333  28.48550  41.58116 0.00e+00
+# WT-E381T    -26.40333 -32.46545 -20.34122 1.00e-07
+# WT-T293D    -61.43667 -66.97059 -55.90274 0.00e+00
+
+ggsave("3E_revised.pdf", p_3E, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.1, units = "in", dpi=500)
+```
+
+3E (revised): Dot plot of SH3 accessibility but no E381T. B&W
+```{r}
+df_3E <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/3E Data.csv", col_names = TRUE)
+p_3E <- ggplot(df_3E, aes(x=Mutant, y=Eluted)) + geom_jitter(size=1.5, height=0,width=.12) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16)  +xlim(c("WT","T293D","D368K")) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_y_continuous(breaks = c(0,20,40,60,80), limits = c(0,80))
+p_3E
+
+#Significance test Src WT vs. T293D vs. D368K vs. E381T SH3 pulldown. One way ANOVA w/ post hoc Tukey
+stats_3E <- aov(Eluted ~ Mutant, data=df_3E)
+summary(stats_3E)
+TukeyHSD(stats_3E)
+
+# $Mutant
+#                  diff       lwr       upr    p adj
+# E381T-D368K -17.33333 -23.88116 -10.78550 1.62e-05
+# T293D-D368K  17.70000  11.63789  23.76211 5.50e-06
+# WT-D368K    -43.73667 -49.27059 -38.20274 0.00e+00
+# T293D-E381T  35.03333  28.48550  41.58116 0.00e+00
+# WT-E381T    -26.40333 -32.46545 -20.34122 1.00e-07
+# WT-T293D    -61.43667 -66.97059 -55.90274 0.00e+00
+
+ggsave("3E_revised.pdf", p_3E, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=500)
+```
+
+3G (revised): Dot plot showing % blebbing cells of Src WT/E381T in SYF. B&W 
+```{r}
+df_3G <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/3G Data Revised.csv", col_names = TRUE)
+
+#Note, I had to jitter this plot more to reliably see all the WT dots
+p_3G <- ggplot(df_3G, aes(x=`Construct`, y=`Blebbing`)) + geom_jitter(size=1, height=0,width=.15, dotsize = 1.5)+ stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16) + theme(text = element_text(size=8), axis.text = element_text(size=8)) + xlim(c("Src WT","Src E381T")) +  
+ theme(axis.text=element_blank(),axis.title=element_blank()) 
+ #coord_flip()# + ylab("Growth Rate \n (OD/min)")
+p_3G
+
+#Significance test Src WT vs. E381T. T-test, two-tailed distribution, unpaired, equal variance
+t.test(df_3G$Blebbing[df_3G$Construct=="Src WT"], df_3G$Blebbing[df_3G$Construct=="Src E381T"], paired = FALSE, var.equal = TRUE)
+#p-value = 0.01005
+
+ggsave("3G_revised.pdf", p_3G, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.6, units = "in", dpi=500) 
+
+
+#Let's also try a 1/3 column width
+ggsave("3G_revised_wider.pdf", p_3G, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.1, units = "in", dpi=500)
+```
+
+
+S3D:Dot plot of SH3 pulldown between Src FL WT and I444K. This was done using a different resin than the other pulldowns, hence why it has its own plot.
+
+```{r}
+df_S3D <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/S3D Data.csv", col_names = TRUE)
+
+df_S3D <- df_S3D[c(1:6),c(1:2)]
+p_S3D <- ggplot(df_S3D, aes(x=Mutant, y=Eluted)) + geom_jitter(size=1.5, height=0,width=.12) + stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 16)  +xlim(c("WT","I444K")) + theme(axis.text=element_blank(),axis.title=element_blank(),legend.position = "none") + scale_y_continuous(breaks = c(0,10,20,30,40), limits = c(0,40))
+p_S3D
+
+#Significance test SrcFL WT vs. SrcFL I444K SH3 pulldown. T-test, two-tailed distribution, unpaired, equal variance
+t.test(df_S3D$Eluted[df_S3D$Mutant=="WT"], df_S3D$Eluted[df_S3D$Mutant=="I444K"], paired = FALSE, var.equal = TRUE)
+#p-value = 0.0007632
+
+
+ggsave("S3D_revised.pdf", p_S3D, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =1.8, units = "in", dpi=500)
+
+```
+
+S3G: Dot plot showing Hela blebbign quantifications of WT, E381T, and T341I. B&W.
+
+```{r}
+df_S3G <- read_csv("~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Data/Figure 3 Dataframes/S3G Data.csv", col_names = TRUE)
+
+df_S3G <- df_S3G[,c(1:2)]
+p_S3G <- ggplot(df_S3G, aes(x=Construct, y=Blebbing)) + geom_jitter(size=1, height=0,width=.08)+ stat_summary(fun.y = "mean", geom = "point", pch = "_", size = 8) + theme(text = element_text(size=8), axis.text = element_text(size=8)) + xlim(c("WT","E381T","T341I")) +  
+ scale_y_continuous(breaks = c(0,10,20,30,40,50), limits = c(0,50))+
+ theme(axis.text=element_blank(),axis.title=element_blank()) 
+  #+ ylab("Growth Rate \n (OD/min)")
+p_S3G
+
+#Significance test Src WT vs. E381T vs. T341I. One way ANOVA w/ post hoc Tukey
+stats_S3G <- aov(Blebbing ~ Construct, data=df_S3G)
+summary(stats_S3G)
+TukeyHSD(stats_S3G)
+
+#                  diff        lwr       upr     p adj
+# T341I-E381T -13.666667 -19.571564  -7.76177 0.0009560
+# WT-E381T    -17.333333 -23.238230 -11.42844 0.0002577
+# WT-T341I     -3.666667  -9.571564   2.23823 0.2173577
+
+ggsave("S3G.pdf", p_S3G, path = "~/Dropbox/Combined Src Manuscript/Figures/Figure 3/Figure 3 Code/Figure 3 Output/", height = 1.5, width =2.8, units = "in", dpi=500) 
+```
+
